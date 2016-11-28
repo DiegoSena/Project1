@@ -1,11 +1,15 @@
 package com.example.diegoguimaraes.project1;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -83,7 +87,7 @@ public class MoviesFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Movie movie = movieAdapter.getItem(position);
-                intent.putExtra("movie", movie);
+                intent.putExtra(Movie.PARCELABLE_KEY, movie);
                 startActivity(intent);
             }
         });
@@ -98,116 +102,21 @@ public class MoviesFragment extends Fragment {
 
     private void updateMovies() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getContext());
-        new FetchMoviesTask().execute(sharedPreferences.getString(getString(R.string.pref_sort_key),
-                                                                 getString(R.string.default_sort_order)));
+        if(internetConectivityIsOn()){
+            new FetchMoviesTask(movieAdapter).execute(sharedPreferences.getString(getString(R.string.pref_sort_key),
+                    getString(R.string.default_sort_order)));
+        }
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, Movie[]>{
-
-        private final String LOG_TAG = FetchMoviesTask.class.getSimpleName();
-        private static final String FORECAST_BASE_URL = "http://api.themoviedb.org/3/movie/";
-        private static final String APPID_PARAM = "api_key";
-        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        @Override
-        protected Movie[] doInBackground(String... params) {
-            String sort = params[0];
-            Log.v(LOG_TAG, "sort by " + sort);
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            String movies = null;
-
-            try{
-                String baseUrl = FORECAST_BASE_URL+sort+"/";
-                Uri builtUri = Uri.parse(baseUrl).buildUpon()
-                        .appendQueryParameter(APPID_PARAM, BuildConfig.THE_MOVIEDB_KEY)
-                        .build();
-
-                URL url = new URL(builtUri.toString());
-
-                Log.v(LOG_TAG, "called url " + url);
-
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    movies = null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    movies = null;
-                }
-                movies = buffer.toString();
-            } catch (IOException e) {
-                Log.e("FethMovieTask", "Error ", e);
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e("FethMovieTask", "Error closing stream", e);
-                    }
-                }
-            }
-
-            if(movies != null){
-                return getMovies(movies);
-            }
-
-            return null;
-        }
-
-        private Movie[] getMovies(String movies) {
-            try {
-                JSONObject moviesJson = new JSONObject(movies);
-                JSONArray movieArray = moviesJson.getJSONArray("results");
-
-                Movie[] result = new Movie[movieArray.length()];
-
-                for(int i = 0; i < movieArray.length(); i++ ){
-                    JSONObject movie = movieArray.getJSONObject(i);
-                    try {
-                        result[i] = new Movie(movie.getString("poster_path"),
-                                             movie.getString("title"),
-                                             getReleaseYear(movie),
-                                             movie.getDouble("vote_average"),
-                                             movie.getString("overview") );
-                    } catch (ParseException e) {
-                        Log.e(LOG_TAG, "Error parsing release_date for movie " + movie.getString("title"), e);
-                    }
-                }
-                return result;
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        private int getReleaseYear(JSONObject movie) throws JSONException, ParseException {
-            Calendar calendar = Calendar.getInstance();
-                  calendar.setTime(sdf.parse(movie.getString("release_date")));
-            return calendar.get(Calendar.YEAR);
-        }
-
-        @Override
-        protected void onPostExecute(Movie[] movies) {
-            if(movies != null){
-                movieAdapter.clear();
-                movieAdapter.addAll(movies);
-            }
-            movieAdapter.notifyDataSetChanged();
-        }
+    private boolean internetConectivityIsOn() {
+        ConnectivityManager conMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo i = conMgr.getActiveNetworkInfo();
+        if (i == null)
+            return false;
+        if (!i.isConnected())
+            return false;
+        if (!i.isAvailable())
+            return false;
+        return true;
     }
 }

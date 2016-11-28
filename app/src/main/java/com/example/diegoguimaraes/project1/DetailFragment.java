@@ -41,17 +41,17 @@ public class DetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
-        Movie movie = getActivity().getIntent().getParcelableExtra("movie");
+        Movie movie = getActivity().getIntent().getParcelableExtra(Movie.PARCELABLE_KEY);
         TextView textView = (TextView) rootView.findViewById(R.id.detail_textview);
-        textView.setText(movie.title);
+        textView.setText(movie.getTitle());
         ImageView image = (ImageView) rootView.findViewById(R.id.detail_imageview_poster);
-        Picasso.with(getContext()).load("http://image.tmdb.org/t/p/w185/"+ movie.posterPath).into(image);
+        Picasso.with(getContext()).load("http://image.tmdb.org/t/p/w185/"+ movie.getPosterPath()).into(image);
         TextView releaseYear = (TextView) rootView.findViewById(R.id.detail_textview_releaseyear);
-        releaseYear.setText(""+movie.releaseYear);
+        releaseYear.setText(""+ movie.getReleaseYear());
         TextView average = (TextView) rootView.findViewById(R.id.detail_textview_average);
-        average.setText(String.format("%.1f/10",movie.voteAverage));
+        average.setText(String.format("%.1f/10", movie.getVoteAverage()));
         TextView overview = (TextView) rootView.findViewById(R.id.detail_textview_overview);
-        overview.setText(movie.overview);
+        overview.setText(movie.getOverview());
         return rootView;
     }
 }

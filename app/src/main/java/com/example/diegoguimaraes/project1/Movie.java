@@ -7,23 +7,25 @@ import android.os.Parcelable;
  * Created by diego.guimaraes on 12/10/16.
  */
 public class Movie implements Parcelable {
-    String posterPath;
-    String title;
-    int releaseYear;
-    double voteAverage;
-    String overview;
+    private String posterPath;
+    private String title;
+    private int releaseYear;
+    private double voteAverage;
+    private String overview;
+
+    public static final String PARCELABLE_KEY = "movie";
 
     @Override
     public String toString() {
-        return posterPath + title + releaseYear + voteAverage + overview;
+        return getPosterPath() + getTitle() + getReleaseYear() + getVoteAverage() + getOverview();
     }
 
     public Movie(String poster_path, String title, int releaseYear, double voteAverage, String overview){
-        this.posterPath = poster_path;
-        this.title = title;
-        this.releaseYear = releaseYear;
-        this.voteAverage = voteAverage;
-        this.overview = overview;
+        this.setPosterPath(poster_path);
+        this.setTitle(title);
+        this.setReleaseYear(releaseYear);
+        this.setVoteAverage(voteAverage);
+        this.setOverview(overview);
     }
 
     @Override
@@ -33,11 +35,11 @@ public class Movie implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(posterPath);
-        dest.writeString(title);
-        dest.writeInt(releaseYear);
-        dest.writeDouble(voteAverage);
-        dest.writeString(overview);
+        dest.writeString(getPosterPath());
+        dest.writeString(getTitle());
+        dest.writeInt(getReleaseYear());
+        dest.writeDouble(getVoteAverage());
+        dest.writeString(getOverview());
     }
 
     /** Static field used to regenerate object, individually or as arrays */
@@ -52,10 +54,50 @@ public class Movie implements Parcelable {
 
     /**Ctor from Parcel, reads back fields IN THE ORDER they were written */
     public Movie(Parcel pc){
-        posterPath = pc.readString();
-        title =  pc.readString();
-        releaseYear = pc.readInt();
-        voteAverage = pc.readDouble();
-        overview = pc.readString();
+        setPosterPath(pc.readString());
+        setTitle(pc.readString());
+        setReleaseYear(pc.readInt());
+        setVoteAverage(pc.readDouble());
+        setOverview(pc.readString());
+    }
+
+    public String getPosterPath() {
+        return posterPath;
+    }
+
+    public void setPosterPath(String posterPath) {
+        this.posterPath = posterPath;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public int getReleaseYear() {
+        return releaseYear;
+    }
+
+    public void setReleaseYear(int releaseYear) {
+        this.releaseYear = releaseYear;
+    }
+
+    public double getVoteAverage() {
+        return voteAverage;
+    }
+
+    public void setVoteAverage(double voteAverage) {
+        this.voteAverage = voteAverage;
+    }
+
+    public String getOverview() {
+        return overview;
+    }
+
+    public void setOverview(String overview) {
+        this.overview = overview;
     }
 }
